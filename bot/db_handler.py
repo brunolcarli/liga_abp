@@ -141,3 +141,17 @@ class ABP_DB:
             logger.info('Failed to add badge on trainer %s', f'{member_id}')
             return False
 
+
+    def top_trainers(self):
+        query = '''
+            SELECT Trainer.username, role, games, wins, losses, badges, Trainer.member_id
+            FROM Member
+            INNER JOIN Trainer
+            WHERE Member.member_id = Trainer.member_id
+            ORDER BY wins
+            LIMIT 8;
+        '''
+        result = read_query(self.connection, query)
+        print(result)
+        return result
+

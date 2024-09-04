@@ -69,7 +69,7 @@ class MyClient(discord.Client):
                 embed.add_field(name='Wins', value=trainer.wins, inline=True)
                 embed.add_field(name='Losses', value=trainer.losses, inline=True)
                 embed.add_field(name='Badges', value='', inline=False)
-                print(trainer.badges)
+
                 for badge in trainer.badges:
                     embed.add_field(name=badge.title(), value=badge_to_emoji[badge], inline=True)
 
@@ -123,11 +123,40 @@ class MyClient(discord.Client):
                 embed.add_field(name='Wins', value=trainer.wins, inline=True)
                 embed.add_field(name='Losses', value=trainer.losses, inline=True)
                 embed.add_field(name='Badges', value='', inline=False)
-                print(trainer.badges)
+
                 for badge in trainer.badges:
                     embed.add_field(name=badge.title(), value=badge_to_emoji[badge], inline=True)
 
                 return await message.channel.send(trainer.name, embed=embed)
+
+            #################
+            # REGISTER
+            #################
+            if cmd in ('report', 'rp', 'res'):
+                if len(user_input) < 3:
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro` [v/f]')
+                condition = user_input[-1].lower()
+                if condition not in 'vf':
+                    return await message.channel.send('Parâmetro(s) incorreto: `v` se o lider venceu, `f` se o treinador venceu!')
+                
+                target = message.mentions
+                if not target:
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, nome da insignia')
+                else:
+                    target = target[0]
+
+            
+            #################
+            # Ranking
+            #################
+            if cmd in ('ranking', 'rank', 'top'):
+                trainers = MyClient.db.top_trainers()
+                embed = discord.Embed(color=0x1E1E1E, type='rich')
+
+                for data in trainers:
+                    trainer = Trainer(*data)
+                    embed.add_field(name=trainer.name, value=f'Games: {trainer.games} ({trainer.wins}/{trainer.losses} | **Badges**: {len(trainer.badges)})', inline=False)
+                return await message.channel.send('Top 8 treinadres da liga', embed=embed)
 
         MyClient.db.connection.reset_session()
 intents = discord.Intents.default()
