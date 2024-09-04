@@ -1,6 +1,6 @@
 from ast import literal_eval
 from base64 import b64decode, b64encode
-from bot.util import badge_to_emoji
+
 
 
 class Member:
@@ -21,7 +21,7 @@ class Trainer:
         self.member_id = member_id
 
     def __repr__(self):
-        return f'{self.name} {self.id}'
+        return f'{self.name} {self.member_id}'
 
     def add_badge(self, badge):
         if badge in self.badges:

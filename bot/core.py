@@ -14,17 +14,18 @@ logger = logging.getLogger(__name__)
 
 
 class MyClient(discord.Client):
+    db = db = ABP_DB(db_connection())
+
     async def on_ready(self):
         logger.info(f'Logged on as {self.user}!')
 
     async def on_message(self, message):
         logger.info(f'Message from {message.author}: {message.content}')
-
         # Opens database connection
-        db = ABP_DB(db_connection())
+        
 
         # Auto create new member if not exists
-        db.get_or_create(parse_id(message.author.id), message.author.name)
+        MyClient.db.get_or_create(parse_id(message.author.id), message.author.name)
 
         # ++++++++++++++
         # BOT COMMAND
@@ -53,15 +54,14 @@ class MyClient(discord.Client):
             if user_input[0].lower() in ('user', 'usr', 'card', 'trainer_card', 'trainer'):
                 if len(user_input) < 2:
                     return await message.channel.send('Parâmetro ausente: `@membro`')
-                result = get_member(message.author)
+    
+                result = MyClient.db.read_trainer_data(parse_id(user_input[1]))
 
                 if not result:
                     return await message.channel('Não encontrado')
-
                 trainer = Trainer(*result[0])
-
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
-                embed.set_thumbnail(url=message.author.avatar)
+                # embed.set_thumbnail(url=message.author.avatar)
 
                 embed.add_field(name='Name', value=trainer.name, inline=True)
                 embed.add_field(name='Role', value=trainer.role, inline=False)
@@ -69,20 +69,27 @@ class MyClient(discord.Client):
                 embed.add_field(name='Wins', value=trainer.wins, inline=True)
                 embed.add_field(name='Losses', value=trainer.losses, inline=True)
                 embed.add_field(name='Badges', value='', inline=False)
+                print(trainer.badges)
                 for badge in trainer.badges:
-                    embed.add_field(name=badge.title(), value=badge_to_emoji(badge), inline=True)
+                    embed.add_field(name=badge.title(), value=badge_to_emoji[badge], inline=True)
 
                 return await message.channel.send('Trainer', embed=embed)
             
             #################
             # ADD BADGE
             #################
-            if user_input[0].lower() in ('add_badge', 'give'):
+            if cmd in ('add_badge', 'give'):
                 if len(user_input) < 3:
                     return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, nome da insignia')
+                badge = user_input[-1]
+                target = message.mentions
+                if not target:
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, nome da insignia')
+                else:
+                    target = target[0]
 
                 try:
-                    trainer = add_badge(message.author, user_input[1], user_input[2])
+                    trainer = add_badge(message.author.id, target.id, user_input[2])
                 except Exception as err:
                     error_message = str(err)
                     if error_message == 'INVALID BADGE':
@@ -90,15 +97,19 @@ class MyClient(discord.Client):
                     if error_message == 'UNAUTHORIZED':
                         return await message.channel.send('Não autorizado à realizar esta ação!')
                 else:
-                    await message.channel.send(f'{trainer.name} recebeu a insígnia {badge_to_emoji[badge]}')
+                    return await message.channel.send(f'{trainer.name} recebeu a insígnia {badge_to_emoji[badge]}')
 
-
+            #################
+            # REGISTER
+            #################
             if cmd in ('register', 'rg'):
                 if len(user_input) < 2:
                     return await message.channel.send('Parâmetro(s) ausente(s): `@membro`')
 
                 result = register(message.author, user_input[1])
                 return await message.channel.send(str(result))
+
+        MyClient.db.connection.reset_session()
 intents = discord.Intents.default()
 intents.message_content = True
 client = MyClient(intents=intents)

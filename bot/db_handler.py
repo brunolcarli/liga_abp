@@ -12,7 +12,7 @@ def db_connection(
     user_name=MYSQL_CONFIG['MYSQL_USER'],
     port=MYSQL_CONFIG['MYSQL_PORT'],
     user_password=MYSQL_CONFIG['MYSQL_PASSWORD'],
-    db=MYSQL_CONFIG['MYSQL_DATABASE']
+    db=MYSQL_CONFIG['MYSQL_DATABASE'],
     ):
     """
     Connects with database.
@@ -24,7 +24,8 @@ def db_connection(
             user=user_name,
             passwd=user_password,
             port=port,
-            db=db
+            db=db,
+            auth_plugin='mysql_native_password'
         )
     except Error as err:
         logger.error('Error: %s', str(err))
@@ -65,6 +66,14 @@ class ABP_DB:
         result = read_query(self.connection, query)
         return result
 
+    def get_trainer(self, _id):
+        query = f'''
+            SELECT username, games, wins, losses, badges
+            FROM Trainer
+            WHERE member_id = {str(_id)}
+        '''
+        result = read_query(self.connection, query)
+        return result
 
     def read_trainer_data(self, _id):
         query = f'''
@@ -79,7 +88,7 @@ class ABP_DB:
 
     def get_or_create(self, member_id, username):
         query = f'''
-            SELECT * FROM Member WHERE member_id = "{member_id}"
+            SELECT * FROM Member WHERE member_id = {member_id}
         '''
         result = read_query(self.connection, query)
         if result:
@@ -117,3 +126,20 @@ class ABP_DB:
             logger.info('Registered new trainer %s', f'{username}:{member_id}')
 
         return read_query(self.connection, query)
+
+    def update_trainer_badges(self, member_id, b64badge_string):
+        
+        query = f'''
+            UPDATE Trainer
+            SET badges = {b64badge_string}
+            WHERE member_id = {str(member_id)}
+        '''
+        
+        try:
+            result = execute_query(self.connection, query)
+            logger.info('Added badge to %s', f'{member_id}')
+            return result
+        except:
+            logger.info('Failed to add badge on trainer %s', f'{member_id}')
+            return False
+

@@ -1,31 +1,42 @@
-from bot.db_handler import ABP_DB, db_connection
+from bot.db_handler import ABP_DB, db_connection, execute_query
 from bot.util import badge_to_emoji, parse_id
 from bot.models import Trainer, Member
 
 
 def get_member(member):
     db = ABP_DB(db_connection())
-    if isinstance(member, str):
-        response = db.read_trainer_data(parse_id(member))
-        return response
 
-    response = db.read_trainer_data(parse_id(str(member.id)))
+    # if isinstance(member, str):
+    #     response = db.read_trainer_data(parse_id(member))
+    #     return response
+
+    response = db.read_trainer_data(member)
+    db.connection.close()
     return response
 
 
 def add_badge(user, member_id, badge):
     if badge.lower() not in badge_to_emoji.keys():
         raise Exception('INVALID BADGE')
+    
+    db = ABP_DB(db_connection())
+    data = db.read_trainer_data(user)[0]
+    user = Trainer(*data)
 
-    user = Trainer(*get_member(user)[0])
     if user.role not in ('admin', 'gym_leader'):
         raise Exception('UNAUTHORIZED')
-    member_id = parse_id(str(member_id))
 
-    trainer = Trainer(*get_member(parse_id(str(member_id))[0]))
+    data2 = db.read_trainer_data(member_id)[0]
+    trainer = Trainer(*data2)
     trainer.add_badge(badge)
-    return trainer
 
+    query = f'''
+            UPDATE Trainer
+            SET badges = "{trainer.encode_badges()}"
+            WHERE member_id = {str(member_id)}
+        '''
+    execute_query(db.connection, query)
+    return trainer
 
 def register(user, trainer):
     user = Trainer(*get_member(user)[0])
