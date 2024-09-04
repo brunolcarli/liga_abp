@@ -6,6 +6,7 @@ from config.settings import __version__
 from discord.ext import commands
 from bot.commands import get_member
 from bot.util import badge_to_emoji
+from bot.models import Trainer
 
 
 class MyClient(discord.Client):
@@ -31,19 +32,19 @@ class MyClient(discord.Client):
 
                 if not result:
                     return await message.channel('Não encontrado')
-                name, role, games, wins, losses, badges, _ = result[0]
+
+                trainer = Trainer(*result[0])
 
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
                 embed.set_thumbnail(url=message.author.avatar)
 
-                embed.add_field(name='Name', value=name, inline=True)
-                embed.add_field(name='Role', value=role, inline=False)
-                embed.add_field(name='Games', value=games, inline=True)
-                embed.add_field(name='Wins', value=wins, inline=True)
-                embed.add_field(name='Losses', value=losses, inline=True)
-                badges = literal_eval(b64decode(badges).decode('utf-8'))
+                embed.add_field(name='Name', value=trainer.name, inline=True)
+                embed.add_field(name='Role', value=trainer.role, inline=False)
+                embed.add_field(name='Games', value=trainer.games, inline=True)
+                embed.add_field(name='Wins', value=trainer.wins, inline=True)
+                embed.add_field(name='Losses', value=trainer.losses, inline=True)
                 embed.add_field(name='Badges', value='', inline=False)
-                for badge in badges:
+                for badge in trainer.badges:
                     embed.add_field(name=badge.title(), value=badge_to_emoji(badge), inline=True)
 
                 return await message.channel.send('Trainer', embed=embed)
