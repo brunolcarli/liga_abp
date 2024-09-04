@@ -10,12 +10,15 @@ from bot.models import Trainer
 from bot.db_handler import ABP_DB, db_connection
 
 
+logger = logging.getLogger(__name__)
+
+
 class MyClient(discord.Client):
     async def on_ready(self):
-        print(f'Logged on as {self.user}!')
+        logger.info(f'Logged on as {self.user}!')
 
     async def on_message(self, message):
-        print(f'Message from {message.author}: {message.content}')
+        logger.info(f'Message from {message.author}: {message.content}')
 
         # Opens database connection
         db = ABP_DB(db_connection())
@@ -27,15 +30,21 @@ class MyClient(discord.Client):
         db.connection.close()
         del db
 
+        # ++++++++++++++
         # BOT COMMAND
+        # ++++++++++++++
         if message.content.startswith('>>'):
             user_input = message.content[2:].strip().split(' ')
 
+            #################
             # VERSION
+            #################
             if user_input[0].lower() in ('version', 'v'):
                 return await message.channel.send(__version__)
             
+            #################
             # TRAINER CARD
+            #################
             if user_input[0].lower() in ('user', 'usr', 'card', 'trainer_card', 'trainer'):
                 if len(user_input) < 2:
                     return await message.channel.send('Parâmetro ausente: `@membro`')
@@ -59,10 +68,14 @@ class MyClient(discord.Client):
                     embed.add_field(name=badge.title(), value=badge_to_emoji(badge), inline=True)
 
                 return await message.channel.send('Trainer', embed=embed)
+            
+            #################
+            # ADD BADGE
+            #################
             if user_input[0].lower() in ('add_badge', 'give'):
                 if len(user_input) < 3:
                     return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, nome da insignia')
-                print(user_input)
+
                 try:
                     add_badge(message.author, user_input[1], user_input[2])
                 except Exception as err:

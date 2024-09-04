@@ -74,7 +74,6 @@ class ABP_DB:
         result = read_query(self.connection, query)
         if result:
             logger.info('Member already registered')
-            print(result)
             return result
         
         new_member = f'''
@@ -85,7 +84,6 @@ class ABP_DB:
         try:
             execute_query(self.connection, new_member)
             result = read_query(self.connection, query)
-            print(result)
         except:
             logger.info('Failed to register new member %s', f'{username}:{member_id}')
         else:
