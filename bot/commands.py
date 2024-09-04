@@ -6,10 +6,6 @@ from bot.models import Trainer, Member
 def get_member(member):
     db = ABP_DB(db_connection())
 
-    # if isinstance(member, str):
-    #     response = db.read_trainer_data(parse_id(member))
-    #     return response
-
     response = db.read_trainer_data(member)
     db.connection.close()
     return response
@@ -39,17 +35,19 @@ def add_badge(user, member_id, badge):
     return trainer
 
 def register(user, trainer):
-    user = Trainer(*get_member(user)[0])
+    db = ABP_DB(db_connection())
+    user = Trainer(*db.read_trainer_data(user.id)[0])
     if user.role not in ('admin', 'gym_leader'):
         raise Exception('UNAUTHORIZED')
     
-    _id = parse_id(trainer)
-    db = ABP_DB(db_connection())
-    member = db.get_member(_id)
+    member = db.get_member(trainer)
     if not member:
         raise Exception('MEMBER NOT FOUND')
     
     member = Member(*member[0])
 
     return db.register_trainer(member.member_id, member.username)
+
+
+
 

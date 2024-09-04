@@ -115,9 +115,7 @@ class ABP_DB:
             INSERT INTO Trainer (discord_id, member_id, username, games, wins, losses, badges)
             VALUES ({str(member_id)}, {str(member_id)}, "{username}", 0, 0, 0, "W10=")
         '''
-        query = f'''
-            SELECT * FROM Trainer WHERE member_id = "{member_id}"
-        '''
+
         try:
             execute_query(self.connection, new_member)
         except:
@@ -125,7 +123,7 @@ class ABP_DB:
         else:
             logger.info('Registered new trainer %s', f'{username}:{member_id}')
 
-        return read_query(self.connection, query)
+        return self.read_trainer_data(member_id)
 
     def update_trainer_badges(self, member_id, b64badge_string):
         

@@ -106,8 +106,28 @@ class MyClient(discord.Client):
                 if len(user_input) < 2:
                     return await message.channel.send('Parâmetro(s) ausente(s): `@membro`')
 
-                result = register(message.author, user_input[1])
-                return await message.channel.send(str(result))
+                target = message.mentions
+                if not target:
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, nome da insignia')
+                else:
+                    target = target[0]
+
+                result = register(message.author, target.id)
+
+                trainer = Trainer(*result[0])
+                embed = discord.Embed(color=0x1E1E1E, type='rich')
+
+                embed.add_field(name='Name', value=trainer.name, inline=True)
+                embed.add_field(name='Role', value=trainer.role, inline=False)
+                embed.add_field(name='Games', value=trainer.games, inline=True)
+                embed.add_field(name='Wins', value=trainer.wins, inline=True)
+                embed.add_field(name='Losses', value=trainer.losses, inline=True)
+                embed.add_field(name='Badges', value='', inline=False)
+                print(trainer.badges)
+                for badge in trainer.badges:
+                    embed.add_field(name=badge.title(), value=badge_to_emoji[badge], inline=True)
+
+                return await message.channel.send(trainer.name, embed=embed)
 
         MyClient.db.connection.reset_session()
 intents = discord.Intents.default()
