@@ -4,8 +4,8 @@ from ast import literal_eval
 from base64 import b64decode
 from config.settings import __version__
 from discord.ext import commands
-from bot.commands import get_member, add_badge
-from bot.util import badge_to_emoji, valid_commands, command_help
+from bot.commands import get_member, add_badge, register
+from bot.util import badge_to_emoji, valid_commands, command_help, parse_id
 from bot.models import Trainer
 from bot.db_handler import ABP_DB, db_connection
 
@@ -24,11 +24,7 @@ class MyClient(discord.Client):
         db = ABP_DB(db_connection())
 
         # Auto create new member if not exists
-        db.get_or_create(message.author.id, message.author.name)
-
-        # close database cnnection and free alocated memory for it
-        db.connection.close()
-        del db
+        db.get_or_create(parse_id(message.author.id), message.author.name)
 
         # ++++++++++++++
         # BOT COMMAND
@@ -37,14 +33,13 @@ class MyClient(discord.Client):
             user_input = message.content[2:].strip().split(' ')
             cmd = user_input[0].lower()
             if cmd not in valid_commands:
-                return await message.channel.send('Comando nã recnhecido!\nEscreva `>>help` para listar os cmandos disponíveis!')
+                return await message.channel.send('Comando não reconhecido!\nEscreva `>>help` para listar os cmandos disponíveis!')
 
             #################
             # VERSION
             #################
             if cmd in ('help', 'h'):
                 return await message.channel.send(command_help['help'])
-
 
             #################
             # VERSION
@@ -87,16 +82,23 @@ class MyClient(discord.Client):
                     return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, nome da insignia')
 
                 try:
-                    add_badge(message.author, user_input[1], user_input[2])
+                    trainer = add_badge(message.author, user_input[1], user_input[2])
                 except Exception as err:
                     error_message = str(err)
                     if error_message == 'INVALID BADGE':
                         return await message.channel.send(f'Insígnia inválida, opções válida: {", ".join(f"`{b}`" for b in badge_to_emoji.keys())}!')
                     if error_message == 'UNAUTHORIZED':
                         return await message.channel.send('Não autorizado à realizar esta ação!')
+                else:
+                    await message.channel.send(f'{trainer.name} recebeu a insígnia {badge_to_emoji[badge]}')
 
 
+            if cmd in ('register', 'rg'):
+                if len(user_input) < 2:
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`')
 
+                result = register(message.author, user_input[1])
+                return await message.channel.send(str(result))
 intents = discord.Intents.default()
 intents.message_content = True
 client = MyClient(intents=intents)

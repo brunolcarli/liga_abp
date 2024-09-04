@@ -56,6 +56,16 @@ class ABP_DB:
     def __init__(self, connection):
         self.connection = connection
 
+
+    def get_member(self, _id):
+        query = f'''
+            SELECT member_id, username, role from Member
+            WHERE member_id = "{_id}"
+        '''
+        result = read_query(self.connection, query)
+        return result
+
+
     def read_trainer_data(self, _id):
         query = f'''
             SELECT Trainer.username, role, games, wins, losses, badges, Trainer.member_id
@@ -69,18 +79,18 @@ class ABP_DB:
 
     def get_or_create(self, member_id, username):
         query = f'''
-            SELECT * FROM Member WHERE member_id = {member_id}
+            SELECT * FROM Member WHERE member_id = "{member_id}"
         '''
         result = read_query(self.connection, query)
         if result:
-            logger.info('Member already registered')
+            logger.debug('Member already registered')
             return result
         
         new_member = f'''
             INSERT INTO Member (discord_id, member_id, username, role)
             VALUES ({str(member_id)}, {str(member_id)}, "{str(username)}", "trainer")
         '''
-        print(new_member)
+
         try:
             execute_query(self.connection, new_member)
             result = read_query(self.connection, query)
@@ -91,3 +101,19 @@ class ABP_DB:
 
         return result
 
+    def register_trainer(self, member_id, username):
+        new_member = f'''
+            INSERT INTO Trainer (discord_id, member_id, username, games, wins, losses, badges)
+            VALUES ({str(member_id)}, {str(member_id)}, "{username}", 0, 0, 0, "W10=")
+        '''
+        query = f'''
+            SELECT * FROM Trainer WHERE member_id = "{member_id}"
+        '''
+        try:
+            execute_query(self.connection, new_member)
+        except:
+            logger.info('Failed to register new trainer %s', f'{username}:{member_id}')
+        else:
+            logger.info('Registered new trainer %s', f'{username}:{member_id}')
+
+        return read_query(self.connection, query)

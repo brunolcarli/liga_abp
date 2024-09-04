@@ -3,6 +3,13 @@ from base64 import b64decode, b64encode
 from bot.util import badge_to_emoji
 
 
+class Member:
+    def __init__(self, member_id, username, role):
+        self.member_id = member_id
+        self.username = username
+        self.role = role
+
+
 class Trainer:
     def __init__(self, name, role, games, wins, losses, badges, member_id):
         self.name = name
