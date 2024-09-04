@@ -5,7 +5,7 @@ from base64 import b64decode
 from config.settings import __version__
 from discord.ext import commands
 from bot.commands import get_member, add_badge
-from bot.util import badge_to_emoji
+from bot.util import badge_to_emoji, valid_commands, command_help
 from bot.models import Trainer
 from bot.db_handler import ABP_DB, db_connection
 
@@ -35,6 +35,16 @@ class MyClient(discord.Client):
         # ++++++++++++++
         if message.content.startswith('>>'):
             user_input = message.content[2:].strip().split(' ')
+            cmd = user_input[0].lower()
+            if cmd not in valid_commands:
+                return await message.channel.send('Comando nã recnhecido!\nEscreva `>>help` para listar os cmandos disponíveis!')
+
+            #################
+            # VERSION
+            #################
+            if cmd in ('help', 'h'):
+                return await message.channel.send(command_help['help'])
+
 
             #################
             # VERSION
