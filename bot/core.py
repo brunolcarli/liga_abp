@@ -7,6 +7,7 @@ from discord.ext import commands
 from bot.commands import get_member, add_badge
 from bot.util import badge_to_emoji
 from bot.models import Trainer
+from bot.db_handler import ABP_DB, db_connection
 
 
 class MyClient(discord.Client):
@@ -15,6 +16,16 @@ class MyClient(discord.Client):
 
     async def on_message(self, message):
         print(f'Message from {message.author}: {message.content}')
+
+        # Opens database connection
+        db = ABP_DB(db_connection())
+
+        # Auto create new member if not exists
+        db.get_or_create(message.author.id, message.author.name)
+
+        # close database cnnection and free alocated memory for it
+        db.connection.close()
+        del db
 
         # BOT COMMAND
         if message.content.startswith('>>'):

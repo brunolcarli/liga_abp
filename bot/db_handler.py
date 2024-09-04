@@ -66,3 +66,30 @@ class ABP_DB:
         '''
         result = read_query(self.connection, query)
         return result
+
+    def get_or_create(self, member_id, username):
+        query = f'''
+            SELECT * FROM Member WHERE member_id = {member_id}
+        '''
+        result = read_query(self.connection, query)
+        if result:
+            logger.info('Member already registered')
+            print(result)
+            return result
+        
+        new_member = f'''
+            INSERT INTO Member (discord_id, member_id, username, role)
+            VALUES ({str(member_id)}, {str(member_id)}, "{str(username)}", "trainer")
+        '''
+        print(new_member)
+        try:
+            execute_query(self.connection, new_member)
+            result = read_query(self.connection, query)
+            print(result)
+        except:
+            logger.info('Failed to register new member %s', f'{username}:{member_id}')
+        else:
+            logger.info('Registered new member %s', f'{username}:{member_id}')
+
+        return result
+
