@@ -4,7 +4,7 @@ from ast import literal_eval
 from base64 import b64decode
 from config.settings import __version__
 from discord.ext import commands
-from bot.commands import get_member
+from bot.commands import get_member, add_badge
 from bot.util import badge_to_emoji
 from bot.models import Trainer
 
@@ -48,7 +48,21 @@ class MyClient(discord.Client):
                     embed.add_field(name=badge.title(), value=badge_to_emoji(badge), inline=True)
 
                 return await message.channel.send('Trainer', embed=embed)
-            
+            if user_input[0].lower() in ('add_badge', 'give'):
+                if len(user_input) < 3:
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, nome da insignia')
+                print(user_input)
+                try:
+                    add_badge(message.author, user_input[1], user_input[2])
+                except Exception as err:
+                    error_message = str(err)
+                    if error_message == 'INVALID BADGE':
+                        return await message.channel.send(f'Insígnia inválida, opções válida: {", ".join(f"`{b}`" for b in badge_to_emoji.keys())}!')
+                    if error_message == 'UNAUTHORIZED':
+                        return await message.channel.send('Não autorizado à realizar esta ação!')
+
+
+
 intents = discord.Intents.default()
 intents.message_content = True
 client = MyClient(intents=intents)
