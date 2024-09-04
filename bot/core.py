@@ -1,10 +1,11 @@
 import discord
-# import logging
+import logging
+from ast import literal_eval
 from base64 import b64decode
 from config.settings import __version__
 from discord.ext import commands
 from bot.commands import get_member
-
+from bot.util import badge_to_emoji
 
 
 class MyClient(discord.Client):
@@ -14,12 +15,16 @@ class MyClient(discord.Client):
     async def on_message(self, message):
         print(f'Message from {message.author}: {message.content}')
 
+        # BOT COMMAND
         if message.content.startswith('>>'):
             user_input = message.content[2:].strip().split(' ')
+
+            # VERSION
             if user_input[0].lower() in ('version', 'v'):
                 return await message.channel.send(__version__)
             
-            if user_input[0].lower() in ('user', 'usr'):
+            # TRAINER CARD
+            if user_input[0].lower() in ('user', 'usr', 'card', 'trainer_card', 'trainer'):
                 if len(user_input) < 2:
                     return await message.channel.send('Parâmetro ausente: `@membro`')
                 result = get_member(message.author)
@@ -28,7 +33,6 @@ class MyClient(discord.Client):
                     return await message.channel('Não encontrado')
                 name, role, games, wins, losses, badges, _ = result[0]
 
-                # avatar_url = f'{message.author.avatar_url.BASE}/avatars/{message.author.id}/{message.author.avatar}'
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
                 embed.set_thumbnail(url=message.author.avatar)
 
@@ -37,18 +41,11 @@ class MyClient(discord.Client):
                 embed.add_field(name='Games', value=games, inline=True)
                 embed.add_field(name='Wins', value=wins, inline=True)
                 embed.add_field(name='Losses', value=losses, inline=True)
+                badges = literal_eval(b64decode(badges).decode('utf-8'))
+                embed.add_field(name='Badges', value='', inline=False)
+                for badge in badges:
+                    embed.add_field(name=badge.title(), value=badge_to_emoji(badge), inline=True)
 
-
-                temp = f'''
-                ```
-                Name: {name}
-                Role: {role}
-                Games: {games}
-                Wins: {wins} | Losses: {losses}
-                Badges:
-                {b64decode(badges)}
-                ```
-                '''
                 return await message.channel.send('Trainer', embed=embed)
             
 intents = discord.Intents.default()
