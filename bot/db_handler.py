@@ -172,3 +172,10 @@ class ABP_DB:
             logger.info('Registered new league %s', f'{season}')
 
         return read_query(self.connection, f"SELECT * FROM Leagues WHERE season = {season};")
+
+    def current_league(self):
+        query = '''
+            SELECT * FROM Leagues
+            WHERE winner IS NULL;
+        '''
+        return read_query(self.connection, query)

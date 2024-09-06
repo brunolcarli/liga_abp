@@ -57,3 +57,7 @@ def list_leagues():
 def new_league(season):
     db = ABP_DB(db_connection())
     return db.create_league(season)
+
+def get_current_league():
+    db = ABP_DB(db_connection())
+    return db.current_league()

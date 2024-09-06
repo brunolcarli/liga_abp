@@ -4,7 +4,7 @@ from ast import literal_eval
 from base64 import b64decode
 from config.settings import __version__
 from discord.ext import commands
-from bot.commands import get_member, add_badge, register, list_leagues, new_league
+from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league
 from bot.util import badge_to_emoji, valid_commands, command_help, parse_id
 from bot.models import Trainer
 from bot.db_handler import ABP_DB, db_connection
@@ -192,6 +192,23 @@ class MyClient(discord.Client):
                 embed.add_field(name='Campeão', value=winner, inline=True)
 
                 return await message.channel.send('Liga registrada', embed=embed)
+
+            if cmd in ('league', 'lg'):
+                data = get_current_league()
+                if not data:
+                    return await message.channel.send('Nenhuma liga em andamento atualmente!')
+                
+                season, winner, games, participants = data[-1]
+                if winner is None:
+                    winner = ':grey_question:'
+
+                embed = discord.Embed(color=0x1E1E1E, type='rich')
+                embed.add_field(name='Season', value=season, inline=False)
+                embed.add_field(name='Partidas', value=games, inline=True)
+                embed.add_field(name='Participantes', value=participants, inline=True)
+                embed.add_field(name='Campeão', value=winner, inline=True)
+                
+                return await message.channel.send('Liga atual', embed=embed)
 
         MyClient.db.connection.reset_session()
 intents = discord.Intents.default()
