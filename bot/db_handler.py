@@ -214,12 +214,17 @@ class ABP_DB:
         return self.read_trainer_data(member_id)
 
     def report(self, leader_id, trainer_id, result):
+        result = result.lower().strip()[0]
+        player_win = 1 if result == 'f' else 0
+        player_loss = 1 if result == 'v' else 0
+        leader_win = 1 if result == 'v' else 0
+        leader_loss = 1 if result == 'f' else 0
+        
         # update trainer table
-        result = 0 if result == 'v' else 1
         query = f'''
             UPDATE Trainer
-            SET wins = wins + {result},
-                losses = losses + {int(not result)},
+            SET wins = wins + {player_win},
+                losses = losses + {player_loss},
                 games = games + 1
             WHERE member_id = {str(trainer_id)};
         '''
@@ -227,19 +232,18 @@ class ABP_DB:
         self.connection.reset_session()
 
         # update leader table
-        result = 1 if result == 'v' else 0
         query = f'''
             UPDATE Leader
-            SET wins = wins + {result},
-                losses = losses + {int(not result)},
+            SET wins = wins + {leader_win},
+                losses = losses + {leader_loss},
                 games = games + 1
             WHERE member_id = {str(leader_id)};
         '''
         execute_query(self.connection, query)
         query = f'''
             UPDATE Trainer
-            SET wins = wins + {result},
-                losses = losses + {int(not result)},
+            SET wins = wins + {leader_win},
+                losses = losses + {leader_loss},
                 games = games + 1
             WHERE member_id = {str(leader_id)};
         '''

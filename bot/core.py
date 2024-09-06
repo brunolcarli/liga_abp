@@ -188,8 +188,10 @@ class MyClient(discord.Client):
                 trainers = MyClient.db.top_trainers()
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
 
-                for data in trainers:
+                for data in trainers[::-1]:
                     trainer = Trainer(*data)
+                    if trainer.role != 'trainer':
+                        continue
                     embed.add_field(name=trainer.name, value=f'Games: {trainer.games} ({trainer.wins}/{trainer.losses} | **Badges**: {len(trainer.badges)})', inline=False)
                 return await message.channel.send('Top 8 treinadres da liga', embed=embed)
 
