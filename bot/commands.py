@@ -54,14 +54,22 @@ def list_leagues():
     db = ABP_DB(db_connection())
     return db.leagues()
 
+
 def new_league(season):
     db = ABP_DB(db_connection())
     return db.create_league(season)
+
 
 def get_current_league():
     db = ABP_DB(db_connection())
     return db.current_league()
 
+
 def register_trainer_to_league(season, member_id):
     db = ABP_DB(db_connection())
     return db.join_league(season, member_id)
+
+
+def battle_report(leader_id, trainer_id, result):
+    db = ABP_DB(db_connection())
+    return db.report(leader_id, trainer_id, result)

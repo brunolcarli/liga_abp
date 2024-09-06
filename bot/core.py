@@ -4,7 +4,7 @@ from ast import literal_eval
 from base64 import b64decode
 from config.settings import __version__
 from discord.ext import commands
-from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league, register_trainer_to_league
+from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league, register_trainer_to_league, battle_report
 from bot.util import badge_to_emoji, valid_commands, command_help, parse_id
 from bot.models import Trainer, Member
 from bot.db_handler import ABP_DB, db_connection
@@ -122,15 +122,21 @@ class MyClient(discord.Client):
                 trainer = Trainer(*result[0])
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
 
+                embed = discord.Embed(color=0x1E1E1E, type='rich')
+                embed.set_thumbnail(url=target.avatar)
                 embed.add_field(name='Name', value=trainer.name, inline=True)
                 embed.add_field(name='Role', value=trainer.role, inline=False)
                 embed.add_field(name='Games', value=trainer.games, inline=True)
                 embed.add_field(name='Wins', value=trainer.wins, inline=True)
                 embed.add_field(name='Losses', value=trainer.losses, inline=True)
+                embed.add_field(name='Liga atual', value=trainer.current_league, inline=False)
+                embed.add_field(name='Ligas vencidas', value=trainer.leagues_win, inline=True)
                 embed.add_field(name='Badges', value='', inline=False)
-
+                
                 for badge in trainer.badges:
                     embed.add_field(name=badge.title(), value=badge_to_emoji[badge], inline=True)
+
+                embed.add_field(name='Ligas jogadas', value=' - '.join(str(league) for league in trainer.leagues_participated), inline=False)
 
                 return await message.channel.send(trainer.name, embed=embed)
 
@@ -149,6 +155,31 @@ class MyClient(discord.Client):
                     return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, nome da insignia')
                 else:
                     target = target[0]
+
+                leader = Trainer(*get_member(message.author.id)[0])
+                if leader.role != 'gym_leader':
+                    return await message.channel.send('Não autorizado')
+                
+                result = battle_report(leader.member_id, target.id, condition)
+
+                trainer = Trainer(*result[0])
+                embed = discord.Embed(color=0x1E1E1E, type='rich')
+                embed.set_thumbnail(url=target.avatar)
+                embed.add_field(name='Name', value=trainer.name, inline=True)
+                embed.add_field(name='Role', value=trainer.role, inline=False)
+                embed.add_field(name='Games', value=trainer.games, inline=True)
+                embed.add_field(name='Wins', value=trainer.wins, inline=True)
+                embed.add_field(name='Losses', value=trainer.losses, inline=True)
+                embed.add_field(name='Liga atual', value=trainer.current_league, inline=False)
+                embed.add_field(name='Ligas vencidas', value=trainer.leagues_win, inline=True)
+                embed.add_field(name='Badges', value='', inline=False)
+                
+                for badge in trainer.badges:
+                    embed.add_field(name=badge.title(), value=badge_to_emoji[badge], inline=True)
+
+                embed.add_field(name='Ligas jogadas', value=' - '.join(str(league) for league in trainer.leagues_participated), inline=False)
+                
+                return await message.channel.send(f'Relatório registrado.\nPerfil do desafiante:', embed=embed)
 
             #################
             # Ranking

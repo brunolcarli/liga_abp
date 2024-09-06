@@ -212,3 +212,44 @@ class ABP_DB:
         self.connection.reset_session()
 
         return self.read_trainer_data(member_id)
+
+    def report(self, leader_id, trainer_id, result):
+        # update trainer table
+        result = 0 if result == 'v' else 1
+        query = f'''
+            UPDATE Trainer
+            SET wins = wins + {result},
+                losses = losses + {int(not result)},
+                games = games + 1
+            WHERE member_id = {str(trainer_id)};
+        '''
+        execute_query(self.connection, query)
+        self.connection.reset_session()
+
+        # update leader table
+        result = 1 if result == 'v' else 0
+        query = f'''
+            UPDATE Leader
+            SET wins = wins + {result},
+                losses = losses + {int(not result)},
+                games = games + 1
+            WHERE member_id = {str(trainer_id)};
+        '''
+        execute_query(self.connection, query)
+        self.connection.reset_session()
+
+        # update leagues table
+        query = f'''
+            UPDATE Leagues
+            SET games = games + 1
+            WHERE season = (
+                SELECT current_league
+                FROM Trainer
+                WHERE member_id = {str(trainer_id)}
+            );
+        '''
+        execute_query(self.connection, query)
+        self.connection.reset_session()
+
+        return self.read_trainer_data(trainer_id)
+    
