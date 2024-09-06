@@ -233,7 +233,15 @@ class ABP_DB:
             SET wins = wins + {result},
                 losses = losses + {int(not result)},
                 games = games + 1
-            WHERE member_id = {str(trainer_id)};
+            WHERE member_id = {str(leader_id)};
+        '''
+        execute_query(self.connection, query)
+        query = f'''
+            UPDATE Trainer
+            SET wins = wins + {result},
+                losses = losses + {int(not result)},
+                games = games + 1
+            WHERE member_id = {str(leader_id)};
         '''
         execute_query(self.connection, query)
         self.connection.reset_session()
