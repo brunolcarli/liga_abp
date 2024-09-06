@@ -4,7 +4,7 @@ from ast import literal_eval
 from base64 import b64decode
 from config.settings import __version__
 from discord.ext import commands
-from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league
+from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league, register_trainer_to_league
 from bot.util import badge_to_emoji, valid_commands, command_help, parse_id
 from bot.models import Trainer, Member
 from bot.db_handler import ABP_DB, db_connection
@@ -61,17 +61,22 @@ class MyClient(discord.Client):
                     return await message.channel('Não encontrado')
                 trainer = Trainer(*result[0])
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
-                # embed.set_thumbnail(url=message.author.avatar)
+                target = message.mentions
+                embed.set_thumbnail(url=target[0].avatar)
 
                 embed.add_field(name='Name', value=trainer.name, inline=True)
                 embed.add_field(name='Role', value=trainer.role, inline=False)
                 embed.add_field(name='Games', value=trainer.games, inline=True)
                 embed.add_field(name='Wins', value=trainer.wins, inline=True)
                 embed.add_field(name='Losses', value=trainer.losses, inline=True)
+                embed.add_field(name='Liga atual', value=trainer.current_league, inline=False)
+                embed.add_field(name='Ligas vencidas', value=trainer.leagues_win, inline=True)
                 embed.add_field(name='Badges', value='', inline=False)
-
+                
                 for badge in trainer.badges:
                     embed.add_field(name=badge.title(), value=badge_to_emoji[badge], inline=True)
+
+                embed.add_field(name='Ligas jogadas', value=' - '.join(str(league) for league in trainer.leagues_participated), inline=False)
 
                 return await message.channel.send('Trainer', embed=embed)
             
@@ -221,6 +226,49 @@ class MyClient(discord.Client):
                 embed.add_field(name='Campeão', value=winner, inline=True)
                 
                 return await message.channel.send('Liga atual', embed=embed)
+
+            #################
+            # Registrar treinador em uma liga
+            #################
+            if cmd in ('join_league', 'jl'):
+                user = Trainer(*get_member(message.author.id)[0])
+                if user.role != 'admin':
+                    return await message.channel.send('Não autorizado!')
+
+                if len(user_input) < 3:
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@member`, `season`')
+
+                target = message.mentions
+                if not target:
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, season')
+                else:
+                    target = target[0]
+                season = user_input[-1]
+                
+                try:
+                    result = register_trainer_to_league(season, target.id)
+                except Exception as err:
+                    return await message.channel.send(str(err))
+                
+                trainer = Trainer(*result[0])
+
+                embed = discord.Embed(color=0x1E1E1E, type='rich')
+                embed.set_thumbnail(url=target.avatar)
+                embed.add_field(name='Name', value=trainer.name, inline=True)
+                embed.add_field(name='Role', value=trainer.role, inline=False)
+                embed.add_field(name='Games', value=trainer.games, inline=True)
+                embed.add_field(name='Wins', value=trainer.wins, inline=True)
+                embed.add_field(name='Losses', value=trainer.losses, inline=True)
+                embed.add_field(name='Liga atual', value=trainer.current_league, inline=False)
+                embed.add_field(name='Ligas vencidas', value=trainer.leagues_win, inline=True)
+                embed.add_field(name='Badges', value='', inline=False)
+                
+                for badge in trainer.badges:
+                    embed.add_field(name=badge.title(), value=badge_to_emoji[badge], inline=True)
+
+                embed.add_field(name='Ligas jogadas', value=' - '.join(str(league) for league in trainer.leagues_participated), inline=False)
+
+                return await message.channel.send('Treinadoor registrado', embed=embed)
 
         MyClient.db.connection.reset_session()
 intents = discord.Intents.default()

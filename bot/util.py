@@ -34,6 +34,7 @@ valid_commands = {
     'report', 'rp', 'res'  # GAME REPORT
     'register', 'rg',  # REGISTER TRAINER,
     'create_league', 'new_league', 'nl', 'cl',  ## CREATE NEW LEAGUE
+    'join_league', 'jl',  ## Register Trainer into a league
     'help', 'h'  # HELP COMMAND
 }
 
@@ -51,5 +52,6 @@ command_help = {
     'leagues': 'Lista as ligas cadastradas | alias: [ls] | \nEx: \n\t `>>ls`',
     'league': 'Informações da liga atual em andamento | alias: [lg] | \nEx: \n\t `>>lg`',
     'create_league': 'Cadastra uma nova liga| alias: [new_league, nl, cl] |  Parâmetros: [season] | \nEx: \n\t `>>create_league 2024`',
+    'join_league': 'Cadastra um treinador em uma liga| alias: [join_league, jl] |  Parâmetros: [@membro, season] | \nEx: \n\t `>>join_league @beelzebruno 2024`',
 }
 command_help['help'] = 'Comandos disponíveis: ' + '\n'.join(f'- `{cmd}` : {description}' for cmd, description in command_help.items())

@@ -2,6 +2,8 @@ import logging
 import mysql.connector
 from mysql.connector import Error
 from config.settings import MYSQL_CONFIG
+from base64 import b64encode, b64decode
+from ast import literal_eval
 
 
 logger = logging.getLogger(__name__)
@@ -77,7 +79,7 @@ class ABP_DB:
 
     def read_trainer_data(self, _id):
         query = f'''
-            SELECT Trainer.username, role, games, wins, losses, badges, Trainer.member_id
+            SELECT Trainer.username, role, games, wins, losses, badges, Trainer.member_id, current_league, leagues_participated, leagues_win
             FROM Member
             INNER JOIN Trainer
             WHERE Member.member_id = Trainer.member_id
@@ -143,7 +145,7 @@ class ABP_DB:
 
     def top_trainers(self):
         query = '''
-            SELECT Trainer.username, role, games, wins, losses, badges, Trainer.member_id
+            SELECT Trainer.username, role, games, wins, losses, badges, Trainer.member_id, current_league, leagues_participated, leagues_win
             FROM Member
             INNER JOIN Trainer
             WHERE Member.member_id = Trainer.member_id
@@ -179,3 +181,34 @@ class ABP_DB:
             WHERE winner IS NULL;
         '''
         return read_query(self.connection, query)
+
+    def join_league(self, season, member_id):
+        leagues_participated = read_query(self.connection, f"SELECT leagues_participated from Trainer WHERE member_id = {str(member_id)};")[0][0]
+        self.connection.reset_session()
+        if leagues_participated == b'0' or leagues_participated == '0' or not leagues_participated:
+            leagues_participated = 'W10='
+        
+        leagues_participated = literal_eval(b64decode(leagues_participated).decode('utf-8'))
+        if int(season) in leagues_participated:
+            raise Exception('ALREADY REGISTERED IN THIS LEAGUE')
+        
+        leagues_participated.append(int(season))
+        leagues_participated = b64encode(str(leagues_participated).encode('utf-8')).decode('utf-8')
+        query = f'''
+            UPDATE Trainer
+            SET current_league = "{season}",
+                leagues_participated = "{leagues_participated}"
+            WHERE member_id = {str(member_id)};
+        '''
+        execute_query(self.connection, query)
+        self.connection.reset_session()
+
+        query = f'''
+            UPDATE Leagues
+            SET participants = participants + 1
+            WHERE season = {str(season)};
+        '''
+        execute_query(self.connection, query)
+        self.connection.reset_session()
+
+        return self.read_trainer_data(member_id)

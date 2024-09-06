@@ -11,7 +11,7 @@ class Member:
 
 
 class Trainer:
-    def __init__(self, name, role, games, wins, losses, badges, member_id):
+    def __init__(self, name, role, games, wins, losses, badges, member_id, current_league, leagues_participated, leagues_win):
         self.name = name
         self.role = role
         self.games = games
@@ -19,7 +19,10 @@ class Trainer:
         self.losses = losses
         self.badges = literal_eval(b64decode(badges).decode('utf-8'))
         self.member_id = member_id
-
+        self.current_league = current_league
+        self.leagues_participated = literal_eval(b64decode(leagues_participated).decode('utf-8'))
+        self.leagues_win = leagues_win
+        
     def __repr__(self):
         return f'{self.name} {self.member_id}'
 

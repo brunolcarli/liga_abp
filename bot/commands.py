@@ -61,3 +61,7 @@ def new_league(season):
 def get_current_league():
     db = ABP_DB(db_connection())
     return db.current_league()
+
+def register_trainer_to_league(season, member_id):
+    db = ABP_DB(db_connection())
+    return db.join_league(season, member_id)
