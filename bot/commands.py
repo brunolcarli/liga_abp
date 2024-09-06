@@ -73,3 +73,7 @@ def register_trainer_to_league(season, member_id):
 def battle_report(leader_id, trainer_id, result):
     db = ABP_DB(db_connection())
     return db.report(leader_id, trainer_id, result)
+
+def list_admins():
+    db = ABP_DB(db_connection())
+    return db.get_admins()

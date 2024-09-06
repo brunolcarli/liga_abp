@@ -265,3 +265,10 @@ class ABP_DB:
 
         return self.read_trainer_data(trainer_id)
     
+    def get_admins(self):
+        query = '''
+            SELECT username
+            FROM Member
+            WHERE role = 'admin';
+        '''
+        return read_query(self.connection, query)

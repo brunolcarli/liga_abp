@@ -4,7 +4,7 @@ from ast import literal_eval
 from base64 import b64decode
 from config.settings import __version__
 from discord.ext import commands
-from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league, register_trainer_to_league, battle_report
+from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league, register_trainer_to_league, battle_report, list_admins
 from bot.util import badge_to_emoji, valid_commands, command_help, parse_id
 from bot.models import Trainer, Member
 from bot.db_handler import ABP_DB, db_connection
@@ -302,6 +302,20 @@ class MyClient(discord.Client):
                 embed.add_field(name='Ligas jogadas', value=' - '.join(str(league) for league in trainer.leagues_participated), inline=False)
 
                 return await message.channel.send('Treinadoor registrado', embed=embed)
+
+            #################
+            # Listar admins
+            #################
+            if cmd in ('admins', 'adms'):
+                admins = list_admins()
+                if not admins:
+                    return await message.channel.send('Nã há organizadores registrados')
+
+                embed = discord.Embed(color=0x1E1E1E, type='rich')
+                for admin in admins:
+                    embed.add_field(name='Nome', value=admin[0], inline=False)
+            return await message.channel.send('Lista de organizadores', embed=embed)
+
 
         MyClient.db.connection.reset_session()
 intents = discord.Intents.default()
