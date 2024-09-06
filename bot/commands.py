@@ -34,6 +34,7 @@ def add_badge(user, member_id, badge):
     execute_query(db.connection, query)
     return trainer
 
+
 def register(user, trainer):
     db = ABP_DB(db_connection())
     user = Trainer(*db.read_trainer_data(user.id)[0])
@@ -53,3 +54,6 @@ def list_leagues():
     db = ABP_DB(db_connection())
     return db.leagues()
 
+def new_league(season):
+    db = ABP_DB(db_connection())
+    return db.create_league(season)

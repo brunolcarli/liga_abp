@@ -154,8 +154,21 @@ class ABP_DB:
         return result
 
     def leagues(self):
-        query = ''''
-            SELECT * FROM Leagues ORDER BY season;
+        query = '''
+            SELECT * FROM Leagues;
         '''
         return read_query(self.connection, query)
 
+    def create_league(self, season):
+        query = f'''
+            INSERT INTO Leagues (season)
+            VALUES ('{season}');
+        '''
+        try:
+            execute_query(self.connection, query)
+        except:
+            logger.info('Failed to register new league %s', f'{season}')
+        else:
+            logger.info('Registered new league %s', f'{season}')
+
+        return read_query(self.connection, f"SELECT * FROM Leagues WHERE season = {season};")

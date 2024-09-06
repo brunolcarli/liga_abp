@@ -32,7 +32,8 @@ valid_commands = {
     'leaders', 'gyms', 'gym_leaders', 'gls', 'gl',  # GYM LEADERS LISTAGE
     'admins', 'adms',  # LIST ADMINS
     'report', 'rp', 'res'  # GAME REPORT
-    'register', 'rg',  # REGISTER TRAINER
+    'register', 'rg',  # REGISTER TRAINER,
+    'create_league', 'new_league', 'nl', 'cl',  ## CREATE NEW LEAGUE
     'help', 'h'  # HELP COMMAND
 }
 
@@ -48,6 +49,7 @@ command_help = {
     'register': 'Registra um treinador| alias: [rg] | Parâmetros: [@usuario] | \nEx:\n\t `>>rg @beelebruno` \nPRIVILÉGIOS: Apenas membros `admin` e `gym_leader` podem usar este recurso!',
     'report': 'Registra o resultado de uma partida entre um líder de ginásio e um treinador | alias: [rp, res] | Parâmetros: [@usuario, resultado líder (v/f)] | \nEx: Líder reporta vitória contra  beelzebruno \n\t `>>res @beelebruno` v \nEx: Líder reporta derrota contra  beelzebruno\n\t `>>res @beelebruno` f \nPRIVILÉGIOS: Apenas membros `admin` e `gym_leader` podem usar este recurso!',
     'leagues': 'Lista as ligas cadastradas | alias: [ls] | \nEx: \n\t `>>ls`',
-    'leagues': 'Informações da iga atual em andamento | alias: [lg] | \nEx: \n\t `>>lg`',
+    'league': 'Informações da liga atual em andamento | alias: [lg] | \nEx: \n\t `>>lg`',
+    'create_league': 'Cadastra uma nova liga| alias: [new_league, nl, cl] |  Parâmetros: [season] | \nEx: \n\t `>>create_league 2024`',
 }
 command_help['help'] = 'Comandos disponíveis: ' + '\n'.join(f'- `{cmd}` : {description}' for cmd, description in command_help.items())
