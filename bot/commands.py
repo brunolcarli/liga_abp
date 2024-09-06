@@ -49,5 +49,7 @@ def register(user, trainer):
     return db.register_trainer(member.member_id, member.username)
 
 
-
+def list_leagues():
+    db = ABP_DB(db_connection())
+    return db.leagues()
 
