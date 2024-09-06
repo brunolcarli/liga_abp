@@ -272,3 +272,36 @@ class ABP_DB:
             WHERE role = 'admin';
         '''
         return read_query(self.connection, query)
+
+    def get_leaders(self):
+        query = f'''
+            SELECT * FROM Leaders;
+        '''
+        return read_query(self.connection, query)
+
+    def read_leaders_data(self, _id):
+        query = f'''
+            SELECT Leader.username, role, games, wins, losses, Leader.member_id, Leader.league, type
+            FROM Member
+            INNER JOIN Leader
+            WHERE Member.member_id = Leader.member_id
+            AND Member.member_id = {_id}
+        '''
+        result = read_query(self.connection, query)
+        return result
+
+    def create_leader(self, member_id, username, _type, league):
+        new_leader = f'''
+            INSERT INTO Leader (discord_id, member_id, username, games, wins, losses, type, league)
+            VALUES ({str(member_id)}, {str(member_id)}, "{username}", 0, 0, 0, '{_type}', '{league}')
+        '''
+
+        try:
+            execute_query(self.connection, new_leader)
+        except:
+            logger.info('Failed to register new leader %s', f'{username}:{member_id}')
+        else:
+            logger.info('Registered new leaqer %s', f'{username}:{member_id}')
+
+        self.connection.reset_session()
+        return self.read_leaders_data(member_id)

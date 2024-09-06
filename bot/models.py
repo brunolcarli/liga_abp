@@ -34,3 +34,15 @@ class Trainer:
 
     def encode_badges(self):
         return b64encode(str(self.badges).encode('utf8')).decode('utf-8')
+
+
+class GymLeader:
+    def __init__(self, username, role, games, wins, losses, member_id, league, type):
+        self.name = username
+        self.role = role
+        self.games = games
+        self.wins = wins
+        self.losses = losses
+        self.member_id = member_id
+        self.league = league
+        self.type = type

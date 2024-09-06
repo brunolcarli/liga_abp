@@ -77,3 +77,11 @@ def battle_report(leader_id, trainer_id, result):
 def list_admins():
     db = ABP_DB(db_connection())
     return db.get_admins()
+
+def register_leader(member_id, username, _type, league):
+    db = ABP_DB(db_connection())
+    return db.create_leader(member_id, username, _type, league)
+
+def get_leaders():
+    db = ABP_DB(db_connection())
+    return db.get_leaders()

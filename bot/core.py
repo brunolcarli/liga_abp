@@ -4,9 +4,9 @@ from ast import literal_eval
 from base64 import b64decode
 from config.settings import __version__
 from discord.ext import commands
-from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league, register_trainer_to_league, battle_report, list_admins
+from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league, register_trainer_to_league, battle_report, list_admins, register_leader
 from bot.util import badge_to_emoji, valid_commands, command_help, parse_id
-from bot.models import Trainer, Member
+from bot.models import Trainer, Member, GymLeader
 from bot.db_handler import ABP_DB, db_connection
 
 
@@ -314,8 +314,36 @@ class MyClient(discord.Client):
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
                 for admin in admins:
                     embed.add_field(name='Nome', value=admin[0], inline=False)
-            return await message.channel.send('Lista de organizadores', embed=embed)
+                return await message.channel.send('Lista de organizadores', embed=embed)
+        
+            #################
+            # Registrar lider
+            #################
+            if cmd in ('create_leader', 'make_leader', 'mkleader'):
+                if len(user_input) < 4:
+                        return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, `tipo`, `season`')
+                
+                user = Trainer(*get_member(message.author.id)[0])
 
+                if user.role != 'admin':
+                    return await message.channel.send('Não autorizado!')
+                
+                target = message.mentions
+                if not target:
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`')
+                else:
+                    target = target[0]
+                leader = GymLeader(*register_leader(target.id, target.name, user_input[-2], user_input[-1])[0])
+
+                embed = discord.Embed(color=0x1E1E1E, type='rich')
+                embed.set_thumbnail(url=target.avatar)
+                embed.add_field(name='Name', value=leader.name, inline=True)
+                embed.add_field(name='Liga', value=leader.league, inline=False)
+                embed.add_field(name='Partidas', value=leader.games, inline=True)
+                embed.add_field(name='Score', value=f'({leader.wins}/{leader.losses})', inline=True)
+                embed.add_field(name='Tipo', value=f'{badge_to_emoji[leader.type]} {leader.type}', inline=False)
+                
+                return await message.channel.send('', embed=embed)
 
         MyClient.db.connection.reset_session()
 intents = discord.Intents.default()
