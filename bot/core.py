@@ -6,7 +6,7 @@ from config.settings import __version__
 from discord.ext import commands
 from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league
 from bot.util import badge_to_emoji, valid_commands, command_help, parse_id
-from bot.models import Trainer
+from bot.models import Trainer, Member
 from bot.db_handler import ABP_DB, db_connection
 
 
@@ -130,7 +130,7 @@ class MyClient(discord.Client):
                 return await message.channel.send(trainer.name, embed=embed)
 
             #################
-            # REGISTER
+            # REPORT
             #################
             if cmd in ('report', 'rp', 'res'):
                 if len(user_input) < 3:
@@ -157,6 +157,9 @@ class MyClient(discord.Client):
                     embed.add_field(name=trainer.name, value=f'Games: {trainer.games} ({trainer.wins}/{trainer.losses} | **Badges**: {len(trainer.badges)})', inline=False)
                 return await message.channel.send('Top 8 treinadres da liga', embed=embed)
 
+            #################
+            # Listar Ligas
+            #################
             if cmd in ('leagues', 'ls'):
                 data = list_leagues()
                 if not data:
@@ -174,8 +177,14 @@ class MyClient(discord.Client):
                 
                 return await message.channel.send('Ligas:', embed=embed)
 
-
+            #################
+            # Criar Liga
+            #################
             if cmd in ('create_league', 'new_league', 'nl', 'cl'):
+                user = Trainer(*get_member(message.author.id)[0])
+                if user.role != 'admin':
+                    return await message.channel.send('Não autorizado!')
+
                 if len(user_input) < 2:
                     return await message.channel.send('Parâmetro(s) ausente(s): season')
 
@@ -193,6 +202,9 @@ class MyClient(discord.Client):
 
                 return await message.channel.send('Liga registrada', embed=embed)
 
+            #################
+            # Liga atual
+            #################
             if cmd in ('league', 'lg'):
                 data = get_current_league()
                 if not data:
