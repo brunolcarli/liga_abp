@@ -275,13 +275,13 @@ class ABP_DB:
 
     def get_leaders(self):
         query = f'''
-            SELECT * FROM Leaders;
+            SELECT username, games, wins, losses, member_id, league, type FROM Leader;
         '''
         return read_query(self.connection, query)
 
     def read_leaders_data(self, _id):
         query = f'''
-            SELECT Leader.username, role, games, wins, losses, Leader.member_id, Leader.league, type
+            SELECT Leader.username, games, wins, losses, Leader.member_id, Leader.league, type
             FROM Member
             INNER JOIN Leader
             WHERE Member.member_id = Leader.member_id

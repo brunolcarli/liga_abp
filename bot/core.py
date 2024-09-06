@@ -4,7 +4,7 @@ from ast import literal_eval
 from base64 import b64decode
 from config.settings import __version__
 from discord.ext import commands
-from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league, register_trainer_to_league, battle_report, list_admins, register_leader
+from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league, register_trainer_to_league, battle_report, list_admins, register_leader, get_leaders
 from bot.util import badge_to_emoji, valid_commands, command_help, parse_id
 from bot.models import Trainer, Member, GymLeader
 from bot.db_handler import ABP_DB, db_connection
@@ -344,6 +344,24 @@ class MyClient(discord.Client):
                 embed.add_field(name='Tipo', value=f'{badge_to_emoji[leader.type]} {leader.type}', inline=False)
                 
                 return await message.channel.send('', embed=embed)
+
+            #################
+            # Registrar lider
+            #################
+            if cmd in ('leaders', 'gyms', 'gym_leaders', 'gls', 'gl'):
+                leaders = get_leaders()
+                if not leaders:
+                    return await message.channel.send('Nenhum líder cadastrado')
+            
+                embed = discord.Embed(color=0x1E1E1E, type='rich')
+                for record in leaders:
+                    leader = GymLeader(*record)
+                    embed.add_field(name='Name', value=f'({leader.league}) {leader.name} {badge_to_emoji[leader.type]} {leader.type.title()}', inline=True)
+                    embed.add_field(name='Games', value=leader.games, inline=True)
+                    embed.add_field(name='Score', value=f'({leader.wins}/{leader.losses})', inline=True)
+                    embed.add_field(name='------------', value='', inline=False)
+
+                return await message.channel.send('Líderes de Ginásio:', embed=embed)
 
         MyClient.db.connection.reset_session()
 intents = discord.Intents.default()

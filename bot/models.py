@@ -37,9 +37,8 @@ class Trainer:
 
 
 class GymLeader:
-    def __init__(self, username, role, games, wins, losses, member_id, league, type):
+    def __init__(self, username, games, wins, losses, member_id, league, type):
         self.name = username
-        self.role = role
         self.games = games
         self.wins = wins
         self.losses = losses
