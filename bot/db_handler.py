@@ -291,6 +291,7 @@ class ABP_DB:
         return result
 
     def create_leader(self, member_id, username, _type, league):
+
         new_leader = f'''
             INSERT INTO Leader (discord_id, member_id, username, games, wins, losses, type, league)
             VALUES ({str(member_id)}, {str(member_id)}, "{username}", 0, 0, 0, '{_type}', '{league}')
@@ -305,3 +306,31 @@ class ABP_DB:
 
         self.connection.reset_session()
         return self.read_leaders_data(member_id)
+
+    def close_league(self, winner_id, winner_name, season):
+        update_winner = f'''
+            UPDATE Trainer
+            SET leagues_win = leagues_win + 1
+            WHERE member_id = "{winner_id}"
+            AND current_league = "{season}";
+        '''
+        execute_query(self.connection, update_winner)
+        self.connection.reset_session()
+
+        update_league = f'''
+            UPDATE Leagues
+            SET winner = "{winner_name}"
+            WHERE season = "{season}";
+        '''
+        execute_query(self.connection, update_league)
+        self.connection.reset_session()
+
+        reset_trainers_league = f'''
+            UPDATE Trainer
+            SET current_league = NULL
+            WHERE current_league = "{season}";
+        '''
+        execute_query(self.connection, reset_trainers_league)
+        self.connection.reset_session()
+
+        return read_query(self.connection, f"SELECT * FROM Leagues WHERE season = '{season}';")

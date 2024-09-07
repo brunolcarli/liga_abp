@@ -4,9 +4,9 @@ from ast import literal_eval
 from base64 import b64decode
 from config.settings import __version__
 from discord.ext import commands
-from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league, register_trainer_to_league, battle_report, list_admins, register_leader, get_leaders
+from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league, register_trainer_to_league, battle_report, list_admins, register_leader, get_leaders, close_league
 from bot.util import badge_to_emoji, valid_commands, command_help, parse_id
-from bot.models import Trainer, Member, GymLeader
+from bot.models import Trainer, GymLeader
 from bot.db_handler import ABP_DB, db_connection
 
 
@@ -362,6 +362,35 @@ class MyClient(discord.Client):
                     embed.add_field(name='------------', value='', inline=False)
 
                 return await message.channel.send('Líderes de Ginásio:', embed=embed)
+
+            #################
+            # Fechar liga (declarar campeão)
+            #################
+            if cmd in ('close_league', 'mkchampion', 'mkwinner', 'end_season', 'clg'):
+                if len(user_input) < 3:
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, `season`')
+                
+                user = Trainer(*get_member(message.author.id)[0])
+
+                if user.role != 'admin':
+                    return await message.channel.send('Não autorizado!')
+                
+                target = message.mentions
+                if not target:
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`')
+                else:
+                    target = target[0]
+                
+                season = user_input[-1]
+                result = close_league(str(target.id), target.name, season)
+                _, winner, games, participants = result[0]
+                embed = discord.Embed(color=0x1E1E1E, type='rich')
+                embed.add_field(name='Season', value=season, inline=False)
+                embed.add_field(name='Campeão :trophy:', value=winner, inline=True)
+                embed.add_field(name='Batalhas', value=games, inline=False)
+                embed.add_field(name='N˚ de participantes', value=participants, inline=True)
+
+                return await message.channel.send('Liga encerrada', embed=embed)
 
         MyClient.db.connection.reset_session()
 intents = discord.Intents.default()

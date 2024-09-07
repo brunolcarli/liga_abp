@@ -85,3 +85,8 @@ def register_leader(member_id, username, _type, league):
 def get_leaders():
     db = ABP_DB(db_connection())
     return db.get_leaders()
+
+def close_league(winner_id, winner_name, season):
+    db = ABP_DB(db_connection())
+    return db.close_league(winner_id, winner_name, season)
+
