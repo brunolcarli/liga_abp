@@ -38,7 +38,15 @@ class MyClient(discord.Client):
             # help
             #################
             if cmd in ('help', 'h'):
-                return await message.channel.send(command_help['help'])
+                if len(user_input) > 2:
+                    param = user_input[-1]
+                    if param in valid_commands:
+                        return await message.channel.send(command_help[param])
+                    return await message.channel.send('Parâmetro não reconhecido')
+                help_list = command_help['help']
+                page1, page2 = help_list.split('- `register`')
+                await message.channel.send(page1)
+                return await message.channel.send(f'- `register`{page2}')
 
             #################
             # VERSION
