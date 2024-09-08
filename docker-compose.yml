@@ -1,10 +1,6 @@
 version: '3'
 services:
 
-  abp_db:
-    image: mariadb:10.3
-    env_file: config/environment/docker
-
   bot:
     build: .
     image: bot:devel
@@ -15,9 +11,6 @@ services:
     volumes:
       - .:/app
       - static_data:/app/static
-    depends_on:
-      - abp_db
 
 volumes:
   static_data:
-  
