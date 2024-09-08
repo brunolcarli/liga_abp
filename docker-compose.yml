@@ -6,7 +6,7 @@ services:
     image: bot:devel
     restart: on-failure
     container_name: abp_bot_container
-    command: make run
+    command: python3 main.py
     env_file: config/environment/docker
     volumes:
       - .:/app

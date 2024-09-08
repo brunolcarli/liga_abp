@@ -1,16 +1,3 @@
-# FROM ubuntu:23.04
-# # FROM 3.11-bullseye
-
-# RUN apt-get update && \
-#     apt-get install --no-install-recommends -y gcc && \
-#     apt-get clean && rm -rf /var/lib/apt/lists/* \
-#     apt-get install make \
-#     apt-get install wget \
-#     apt-get install tar
-
-
-
-
 FROM debian:bullseye
 
 RUN apt-get update -y \

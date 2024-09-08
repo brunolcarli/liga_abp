@@ -7,3 +7,4 @@ flask==2.0.1
 py-cord
 Jinja2==3.0.3
 itsdangerous==2.0.1
+mysql-connector-python==9.0.0

@@ -21,8 +21,6 @@ class MyClient(discord.Client):
 
     async def on_message(self, message):
         logger.info(f'Message from {message.author}: {message.content}')
-        # Opens database connection
-        
 
         # Auto create new member if not exists
         MyClient.db.get_or_create(parse_id(message.author.id), message.author.name)
@@ -34,10 +32,10 @@ class MyClient(discord.Client):
             user_input = message.content[2:].strip().split(' ')
             cmd = user_input[0].lower()
             if cmd not in valid_commands:
-                return await message.channel.send('Comando não reconhecido!\nEscreva `>>help` para listar os cmandos disponíveis!')
+                return await message.channel.send('Comando não reconhecido!\nEscreva `>>help` para listar os comandos disponíveis!')
 
             #################
-            # VERSION
+            # help
             #################
             if cmd in ('help', 'h'):
                 return await message.channel.send(command_help['help'])
