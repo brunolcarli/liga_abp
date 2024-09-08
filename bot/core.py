@@ -1,11 +1,9 @@
 import discord
 import logging
-from ast import literal_eval
-from base64 import b64decode
 from config.settings import __version__
 from discord.ext import commands
-from bot.commands import get_member, add_badge, register, list_leagues, new_league, get_current_league, register_trainer_to_league, battle_report, list_admins, register_leader, get_leaders, close_league
-from bot.util import badge_to_emoji, valid_commands, command_help, parse_id
+from bot.commands import BotCommands
+from bot.util import parse_id, badge_to_emoji
 from bot.models import Trainer, GymLeader
 from bot.db_handler import ABP_DB, db_connection
 
@@ -20,7 +18,7 @@ class MyClient(discord.Client):
         logger.info(f'Logged on as {self.user}!')
 
     async def on_message(self, message):
-        logger.info(f'Message from {message.author}: {message.content}')
+        logger.debug(f'Message from {message.author}: {message.content}')
 
         # Auto create new member if not exists
         MyClient.db.get_or_create(parse_id(message.author.id), message.author.name)
@@ -31,7 +29,7 @@ class MyClient(discord.Client):
         if message.content.startswith('>>'):
             user_input = message.content[2:].strip().split(' ')
             cmd = user_input[0].lower()
-            if cmd not in valid_commands:
+            if cmd not in BotCommands.valid_commands:
                 return await message.channel.send('Comando não reconhecido!\nEscreva `>>help` para listar os comandos disponíveis!')
 
             #################
@@ -40,10 +38,10 @@ class MyClient(discord.Client):
             if cmd in ('help', 'h'):
                 if len(user_input) > 2:
                     param = user_input[-1]
-                    if param in valid_commands:
-                        return await message.channel.send(command_help[param])
+                    if param in BotCommands.valid_commands:
+                        return await message.channel.send(BotCommands.command_help[param])
                     return await message.channel.send('Parâmetro não reconhecido')
-                help_list = command_help['help']
+                help_list = BotCommands.command_help['help']
                 page1, page2 = help_list.split('- `register`')
                 await message.channel.send(page1)
                 return await message.channel.send(f'- `register`{page2}')
@@ -100,7 +98,7 @@ class MyClient(discord.Client):
                     target = target[0]
 
                 try:
-                    trainer = add_badge(message.author.id, target.id, user_input[2])
+                    trainer = BotCommands.add_badge(message.author.id, target.id, user_input[2])
                 except Exception as err:
                     error_message = str(err)
                     if error_message == 'INVALID BADGE':
@@ -123,7 +121,7 @@ class MyClient(discord.Client):
                 else:
                     target = target[0]
 
-                result = register(message.author, target.id)
+                result = BotCommands.register(message.author, target.id)
 
                 trainer = Trainer(*result[0])
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
@@ -162,11 +160,11 @@ class MyClient(discord.Client):
                 else:
                     target = target[0]
 
-                leader = Trainer(*get_member(message.author.id)[0])
+                leader = Trainer(*BotCommands.get_member(message.author.id)[0])
                 if leader.role != 'gym_leader':
                     return await message.channel.send('Não autorizado')
                 
-                result = battle_report(leader.member_id, target.id, condition)
+                result = BotCommands.battle_report(leader.member_id, target.id, condition)
 
                 trainer = Trainer(*result[0])
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
@@ -205,7 +203,7 @@ class MyClient(discord.Client):
             # Listar Ligas
             #################
             if cmd in ('leagues', 'ls'):
-                data = list_leagues()
+                data = BotCommands.list_leagues()
                 if not data:
                     return await message.channel.send('Não há ligas cadastradas no momento')
                 
@@ -225,7 +223,7 @@ class MyClient(discord.Client):
             # Criar Liga
             #################
             if cmd in ('create_league', 'new_league', 'nl', 'cl'):
-                user = Trainer(*get_member(message.author.id)[0])
+                user = Trainer(*BotCommands.get_member(message.author.id)[0])
                 if user.role != 'admin':
                     return await message.channel.send('Não autorizado!')
 
@@ -233,7 +231,7 @@ class MyClient(discord.Client):
                     return await message.channel.send('Parâmetro(s) ausente(s): season')
 
                 season = user_input[-1]
-                league = new_league(season)[-1]
+                league = BotCommands.new_league(season)[-1]
 
                 season, winner, games, participants = league
                 if winner is None:
@@ -250,7 +248,7 @@ class MyClient(discord.Client):
             # Liga atual
             #################
             if cmd in ('league', 'lg'):
-                data = get_current_league()
+                data = BotCommands.get_current_league()
                 if not data:
                     return await message.channel.send('Nenhuma liga em andamento atualmente!')
                 
@@ -270,7 +268,7 @@ class MyClient(discord.Client):
             # Registrar treinador em uma liga
             #################
             if cmd in ('join_league', 'jl'):
-                user = Trainer(*get_member(message.author.id)[0])
+                user = Trainer(*BotCommands.get_member(message.author.id)[0])
                 if user.role != 'admin':
                     return await message.channel.send('Não autorizado!')
 
@@ -285,7 +283,7 @@ class MyClient(discord.Client):
                 season = user_input[-1]
                 
                 try:
-                    result = register_trainer_to_league(season, target.id)
+                    result = BotCommands.register_trainer_to_league(season, target.id)
                 except Exception as err:
                     return await message.channel.send(str(err))
                 
@@ -313,7 +311,7 @@ class MyClient(discord.Client):
             # Listar admins
             #################
             if cmd in ('admins', 'adms'):
-                admins = list_admins()
+                admins = BotCommands.list_admins()
                 if not admins:
                     return await message.channel.send('Nã há organizadores registrados')
 
@@ -329,7 +327,7 @@ class MyClient(discord.Client):
                 if len(user_input) < 4:
                         return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, `tipo`, `season`')
                 
-                user = Trainer(*get_member(message.author.id)[0])
+                user = Trainer(*BotCommands.get_member(message.author.id)[0])
 
                 if user.role != 'admin':
                     return await message.channel.send('Não autorizado!')
@@ -339,7 +337,7 @@ class MyClient(discord.Client):
                     return await message.channel.send('Parâmetro(s) ausente(s): `@membro`')
                 else:
                     target = target[0]
-                leader = GymLeader(*register_leader(target.id, target.name, user_input[-2], user_input[-1])[0])
+                leader = GymLeader(*BotCommands.register_leader(target.id, target.name, user_input[-2], user_input[-1])[0])
 
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
                 embed.set_thumbnail(url=target.avatar)
@@ -355,7 +353,7 @@ class MyClient(discord.Client):
             # Registrar lider
             #################
             if cmd in ('leaders', 'gyms', 'gym_leaders', 'gls', 'gl'):
-                leaders = get_leaders()
+                leaders = BotCommands.get_leaders()
                 if not leaders:
                     return await message.channel.send('Nenhum líder cadastrado')
             
@@ -376,7 +374,7 @@ class MyClient(discord.Client):
                 if len(user_input) < 3:
                     return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, `season`')
                 
-                user = Trainer(*get_member(message.author.id)[0])
+                user = Trainer(*BotCommands.get_member(message.author.id)[0])
 
                 if user.role != 'admin':
                     return await message.channel.send('Não autorizado!')
@@ -388,7 +386,7 @@ class MyClient(discord.Client):
                     target = target[0]
                 
                 season = user_input[-1]
-                result = close_league(str(target.id), target.name, season)
+                result = BotCommands.close_league(str(target.id), target.name, season)
                 _, winner, games, participants = result[0]
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
                 embed.add_field(name='Season', value=season, inline=False)
