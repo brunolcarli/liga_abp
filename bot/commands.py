@@ -38,7 +38,7 @@ class BotCommands:
 
     command_help = {
         'version': 'Exibe a versão do bot/serviço! | alias: [v] | \nEx:\n\t `>>version`',
-        'trainer': 'Exibe informaç˜es do treinador da liga! |alias: [user, usr, trainer_card, card] | Parâmetros: [@usuario] | \nEx:\n\t `>>trainer @beelzebruno`',
+        'trainer': 'Exibe informações do treinador da liga! |alias: [user, usr, trainer_card, card] | Parâmetros: [@usuario] | \nEx:\n\t `>>trainer @beelzebruno`',
         'give': 'Confere uma insígnia à um Treinador | alias: [add_badge] | Parâmetros: [@usuario, nome da insígnia] |\n Ex:\n\t `>>give @beelzebruno ice`\nPRIVILÉGIOS: Apenas membros `admin` e `gym_leader` podem usar este recurso!',
         'ranking': 'Lista os top8 jogadores baseado n número de vitórias | alias: [rank, top] | \nEx:\n\t `>>top`',
         'leaders': 'Lista os líderes de ginásios da liga | alias: [gyms, gym_leaders, gl, gls] | \nEx:\n\t `>>gl`',
