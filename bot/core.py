@@ -12,16 +12,16 @@ logger = logging.getLogger(__name__)
 
 
 class MyClient(discord.Client):
-    db = db = ABP_DB(db_connection())
+    # db = ABP_DB(db_connection())
 
     async def on_ready(self):
         logger.info(f'Logged on as {self.user}!')
 
     async def on_message(self, message):
         logger.info(f'Message from {message.author}: {message.content}')
-        MyClient.db.connection.reset_session()
+        db = ABP_DB(db_connection())
         # Auto create new member if not exists
-        MyClient.db.get_or_create(parse_id(message.author.id), message.author.name)
+        db.get_or_create(parse_id(message.author.id), message.author.name)
 
         # ++++++++++++++
         # BOT COMMAND
@@ -44,7 +44,7 @@ class MyClient(discord.Client):
                 help_list = BotCommands.command_help['help']
                 page1, page2 = help_list.split('- `report`')
                 await message.channel.send(page1)
-                return await message.channel.send(f'- `report`{page2}')
+                return await message.channel.send(f'- `register`{page2}')
 
             #################
             # VERSION
@@ -59,7 +59,7 @@ class MyClient(discord.Client):
                 if len(user_input) < 2:
                     return await message.channel.send('Parâmetro ausente: `@membro`')
     
-                result = MyClient.db.read_trainer_data(parse_id(user_input[1]))
+                result = db.read_trainer_data(parse_id(user_input[1]))
 
                 if not result:
                     return await message.channel.send('Não encontrado')
@@ -190,7 +190,7 @@ class MyClient(discord.Client):
             # Ranking
             #################
             if cmd in ('ranking', 'rank', 'top'):
-                trainers = MyClient.db.top_trainers()
+                trainers = db.top_trainers()
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
 
                 for data in trainers[::-1]:
@@ -399,7 +399,7 @@ class MyClient(discord.Client):
 
                 return await message.channel.send('Liga encerrada', embed=embed)
 
-        MyClient.db.connection.reset_session()
+        db.connection.reset_session()
 intents = discord.Intents.default()
 intents.message_content = True
 client = MyClient(intents=intents)

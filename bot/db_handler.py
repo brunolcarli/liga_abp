@@ -28,8 +28,12 @@ def db_connection(
             db=db,
             auth_plugin='mysql_native_password'
         )
-    except Error as err:
-        logger.error('Error: %s', str(err))
+    except mysql.connector.Error as err:
+        if err.errno == mysql.connector.errorcode.ER_ACCESS_DENIED_ERROR:
+            logger.info("Something is wrong with your user name or password")
+        else:
+            logger.error('Error: %s', str(err))
+            connection.close()
 
     return connection
 
