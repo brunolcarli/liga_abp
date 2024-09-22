@@ -62,7 +62,7 @@ class BotCommands:
         db.connection.close()
         leader = None
         for i in response:
-            if str(member) == str(response[4]):
+            if str(member) == str(i[4]):
                 leader = i
                 break
         return leader
