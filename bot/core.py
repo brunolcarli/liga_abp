@@ -42,9 +42,9 @@ class MyClient(discord.Client):
                         return await message.channel.send(BotCommands.command_help[param])
                     return await message.channel.send('Parâmetro não reconhecido')
                 help_list = BotCommands.command_help['help']
-                page1, page2 = help_list.split('- `register`')
+                page1, page2 = help_list.split('- `report`')
                 await message.channel.send(page1)
-                return await message.channel.send(f'- `register`{page2}')
+                return await message.channel.send(f'- `report`{page2}')
 
             #################
             # VERSION
