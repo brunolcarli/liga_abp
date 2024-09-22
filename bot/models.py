@@ -45,3 +45,4 @@ class GymLeader:
         self.member_id = member_id
         self.league = league
         self.type = type
+        self.role = 'gym_leader'

@@ -62,7 +62,7 @@ class MyClient(discord.Client):
                 result = MyClient.db.read_trainer_data(parse_id(user_input[1]))
 
                 if not result:
-                    return await message.channel('Não encontrado')
+                    return await message.channel.send('Não encontrado')
                 trainer = Trainer(*result[0])
                 embed = discord.Embed(color=0x1E1E1E, type='rich')
                 target = message.mentions
@@ -160,7 +160,7 @@ class MyClient(discord.Client):
                 else:
                     target = target[0]
 
-                leader = Trainer(*BotCommands.get_member(message.author.id)[0])
+                leader = GymLeader(*BotCommands.get_leader(message.author.id))
                 if leader.role != 'gym_leader':
                     return await message.channel.send('Não autorizado')
                 

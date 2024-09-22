@@ -53,7 +53,19 @@ class BotCommands:
         'close_league': 'Fecha uma liga declarando o campeão| alias: [mkchampion, mkwinner, end_season, clg] |  Parâmetros: [@membro, season] | \nEx: \n\t `>>close_league @beelzebruno 2024`',
     }
     command_help['help'] = 'Comandos disponíveis: ' + '\n'.join(f'- `{cmd}` : {description}' for cmd, description in command_help.items())
-        
+
+    @staticmethod
+    def get_leader(member):
+        db = ABP_DB(db_connection())
+
+        response = db.get_leaders()
+        db.connection.close()
+        leader = None
+        for i in response:
+            if str(member) == str(response[4]):
+                leader = i
+                break
+        return leader
 
     @staticmethod
     def get_member(member):
