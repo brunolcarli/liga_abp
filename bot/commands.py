@@ -1,6 +1,6 @@
 from bot.db_handler import ABP_DB, db_connection, execute_query
 from bot.util import badge_to_emoji
-from bot.models import Trainer, Member
+from bot.models import Trainer, Member, GymLeader
 
 
 class BotCommands:
@@ -81,8 +81,8 @@ class BotCommands:
             raise Exception('INVALID BADGE')
         
         db = ABP_DB(db_connection())
-        data = db.read_trainer_data(user)[0]
-        user = Trainer(*data)
+        data = BotCommands.get_leader(user)
+        user = GymLeader(*data)
 
         if user.role not in ('admin', 'gym_leader'):
             raise Exception('UNAUTHORIZED')
