@@ -1,5 +1,4 @@
 from ast import literal_eval
-from base64 import b64decode, b64encode
 
 
 
@@ -17,10 +16,10 @@ class Trainer:
         self.games = games
         self.wins = wins
         self.losses = losses
-        self.badges = literal_eval(b64decode(badges).decode('utf-8'))
+        self.badges = literal_eval(badges.decode())
         self.member_id = member_id
         self.current_league = current_league
-        self.leagues_participated = literal_eval(b64decode(leagues_participated).decode('utf-8'))
+        self.leagues_participated = literal_eval(leagues_participated.decode())
         self.leagues_win = leagues_win
         
     def __repr__(self):
@@ -33,7 +32,7 @@ class Trainer:
         return self.badges
 
     def encode_badges(self):
-        return b64encode(str(self.badges).encode('utf8')).decode('utf-8')
+        return str(self.badges)
 
 
 class GymLeader:

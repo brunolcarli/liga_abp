@@ -2,7 +2,6 @@ import logging
 import mysql.connector
 from mysql.connector import Error
 from config.settings import MYSQL_CONFIG
-from base64 import b64encode, b64decode
 from ast import literal_eval
 
 
@@ -109,13 +108,15 @@ class ABP_DB:
             logger.info('Failed to register new member %s', f'{username}:{member_id}')
         else:
             logger.info('Registered new member %s', f'{username}:{member_id}')
-
-        return result
+        
+        self.connection.reset_session()
+        
+        return self.register_trainer(member_id, username)
 
     def register_trainer(self, member_id, username):
         new_member = f'''
             INSERT INTO Trainer (discord_id, member_id, username, games, wins, losses, badges)
-            VALUES ({str(member_id)}, {str(member_id)}, "{username}", 0, 0, 0, "W10=")
+            VALUES ({str(member_id)}, {str(member_id)}, "{username}", 0, 0, 0, "[]")
         '''
 
         try:
@@ -127,11 +128,11 @@ class ABP_DB:
 
         return self.read_trainer_data(member_id)
 
-    def update_trainer_badges(self, member_id, b64badge_string):
+    def update_trainer_badges(self, member_id, badges):
         
         query = f'''
             UPDATE Trainer
-            SET badges = {b64badge_string}
+            SET badges = {badges}
             WHERE member_id = {str(member_id)}
         '''
         
@@ -185,15 +186,15 @@ class ABP_DB:
     def join_league(self, season, member_id):
         leagues_participated = read_query(self.connection, f"SELECT leagues_participated from Trainer WHERE member_id = {str(member_id)};")[0][0]
         self.connection.reset_session()
-        if leagues_participated == b'0' or leagues_participated == '0' or not leagues_participated:
-            leagues_participated = 'W10='
+        if leagues_participated == b'[]' or leagues_participated == '[]' or not leagues_participated:
+            leagues_participated = '[]'
         
-        leagues_participated = literal_eval(b64decode(leagues_participated).decode('utf-8'))
+        leagues_participated = literal_eval(leagues_participated)
         if int(season) in leagues_participated:
             raise Exception('ALREADY REGISTERED IN THIS LEAGUE')
         
         leagues_participated.append(int(season))
-        leagues_participated = b64encode(str(leagues_participated).encode('utf-8')).decode('utf-8')
+        leagues_participated = str(leagues_participated)
         query = f'''
             UPDATE Trainer
             SET current_league = "{season}",
