@@ -97,7 +97,7 @@ class ABP_DB:
             return result
         
         new_member = f'''
-            INSERT INTO Member (discord_id, member_id, username, role)
+            INSERT IGNORE INTO Member (discord_id, member_id, username, role)
             VALUES ({str(member_id)}, {str(member_id)}, "{str(username)}", "trainer")
         '''
 
@@ -115,7 +115,7 @@ class ABP_DB:
 
     def register_trainer(self, member_id, username):
         new_member = f'''
-            INSERT INTO Trainer (discord_id, member_id, username, games, wins, losses, badges)
+            INSERT IGNORE INTO Trainer (discord_id, member_id, username, games, wins, losses, badges)
             VALUES ({str(member_id)}, {str(member_id)}, "{username}", 0, 0, 0, "[]")
         '''
 
@@ -164,7 +164,7 @@ class ABP_DB:
 
     def create_league(self, season):
         query = f'''
-            INSERT INTO Leagues (season)
+            INSERT IGNORE INTO Leagues (season)
             VALUES ('{season}');
         '''
         try:
@@ -216,11 +216,17 @@ class ABP_DB:
 
     def report(self, leader_id, trainer_id, result):
         result = result.lower().strip()[0]
-        player_win = 1 if result == 'f' else 0
-        player_loss = 1 if result == 'v' else 0
-        leader_win = 1 if result == 'v' else 0
-        leader_loss = 1 if result == 'f' else 0
-        
+        if result == 'f':
+            player_win = 1
+            leader_win = 0
+            player_loss = 0
+            leader_loss = 1
+        else:
+            player_win = 0
+            leader_win = 1
+            player_loss = 1
+            leader_loss = 0
+
         # update trainer table
         query = f'''
             UPDATE Trainer

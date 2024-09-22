@@ -18,8 +18,8 @@ class MyClient(discord.Client):
         logger.info(f'Logged on as {self.user}!')
 
     async def on_message(self, message):
-        logger.debug(f'Message from {message.author}: {message.content}')
-
+        logger.info(f'Message from {message.author}: {message.content}')
+        MyClient.db.connection.reset_session()
         # Auto create new member if not exists
         MyClient.db.get_or_create(parse_id(message.author.id), message.author.name)
 
@@ -88,17 +88,16 @@ class MyClient(discord.Client):
             # ADD BADGE
             #################
             if cmd in ('add_badge', 'give'):
-                if len(user_input) < 3:
-                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, nome da insignia')
-                badge = user_input[-1]
+                if len(user_input) < 2:
+                    return await message.channel.send('Parâmetro ausente(s): `@membro`')
                 target = message.mentions
                 if not target:
-                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, nome da insignia')
+                    return await message.channel.send('Parâmetro ausente(s): `@membro`')
                 else:
                     target = target[0]
 
                 try:
-                    trainer = BotCommands.add_badge(message.author.id, target.id, user_input[2])
+                    trainer, badge = BotCommands.add_badge(message.author.id, target.id)
                 except Exception as err:
                     error_message = str(err)
                     if error_message == 'INVALID BADGE':
@@ -111,38 +110,40 @@ class MyClient(discord.Client):
             #################
             # REGISTER
             #################
-            if cmd in ('register', 'rg'):
-                if len(user_input) < 2:
-                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`')
+            # if cmd in ('register', 'rg'):
+            #     if len(user_input) < 2:
+            #         return await message.channel.send('Parâmetro(s) ausente(s): `@membro`')
 
-                target = message.mentions
-                if not target:
-                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, nome da insignia')
-                else:
-                    target = target[0]
+            #     target = message.mentions
+            #     if not target:
+            #         return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, liga')
+            #     else:
+            #         target = target[0]
+            #     try:
+            #         result = BotCommands.register(message.author, target.id)
+            #     except Exception as err:
+            #         if error_message == 'MEMBER NOT FOUND':
+            #             return await message.channel.send('Mmebro não registrado, é necessário que o membro marcado envie ao menos uma mensagem no chat, assim seu registro de membro será realizado automaticamente. Uma vez registrado você poderá executar novamente este comando!')
 
-                result = BotCommands.register(message.author, target.id)
+            #     trainer = Trainer(*result[0])
+            #     embed = discord.Embed(color=0x1E1E1E, type='rich')
 
-                trainer = Trainer(*result[0])
-                embed = discord.Embed(color=0x1E1E1E, type='rich')
-
-                embed = discord.Embed(color=0x1E1E1E, type='rich')
-                embed.set_thumbnail(url=target.avatar)
-                embed.add_field(name='Name', value=trainer.name, inline=True)
-                embed.add_field(name='Role', value=trainer.role, inline=False)
-                embed.add_field(name='Games', value=trainer.games, inline=True)
-                embed.add_field(name='Wins', value=trainer.wins, inline=True)
-                embed.add_field(name='Losses', value=trainer.losses, inline=True)
-                embed.add_field(name='Liga atual', value=trainer.current_league, inline=False)
-                embed.add_field(name='Ligas vencidas', value=trainer.leagues_win, inline=True)
-                embed.add_field(name='Badges', value='', inline=False)
+            #     embed.set_thumbnail(url=target.avatar)
+            #     embed.add_field(name='Name', value=trainer.name, inline=True)
+            #     embed.add_field(name='Role', value=trainer.role, inline=False)
+            #     embed.add_field(name='Games', value=trainer.games, inline=True)
+            #     embed.add_field(name='Wins', value=trainer.wins, inline=True)
+            #     embed.add_field(name='Losses', value=trainer.losses, inline=True)
+            #     embed.add_field(name='Liga atual', value=trainer.current_league, inline=False)
+            #     embed.add_field(name='Ligas vencidas', value=trainer.leagues_win, inline=True)
+            #     embed.add_field(name='Badges', value='', inline=False)
                 
-                for badge in trainer.badges:
-                    embed.add_field(name=badge.title(), value=badge_to_emoji[badge], inline=True)
+            #     for badge in trainer.badges:
+            #         embed.add_field(name=badge.title(), value=badge_to_emoji[badge], inline=True)
 
-                embed.add_field(name='Ligas jogadas', value=' - '.join(str(league) for league in trainer.leagues_participated), inline=False)
+            #     embed.add_field(name='Ligas jogadas', value=' - '.join(str(league) for league in trainer.leagues_participated), inline=False)
 
-                return await message.channel.send(trainer.name, embed=embed)
+            #     return await message.channel.send(trainer.name, embed=embed)
 
             #################
             # REPORT
@@ -268,18 +269,20 @@ class MyClient(discord.Client):
             # Registrar treinador em uma liga
             #################
             if cmd in ('join_league', 'jl'):
-                user = Trainer(*BotCommands.get_member(message.author.id)[0])
-                if user.role != 'admin':
-                    return await message.channel.send('Não autorizado!')
-
                 if len(user_input) < 3:
-                    return await message.channel.send('Parâmetro(s) ausente(s): `@member`, `season`')
-
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@member`, `liga`')
                 target = message.mentions
                 if not target:
-                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, season')
+                    return await message.channel.send('Parâmetro(s) ausente(s): `@membro`, `liga`')
                 else:
                     target = target[0]
+
+                user = Trainer(*BotCommands.get_member(message.author.id)[0])
+
+                # if user.role 'admin':
+                #     return await message.channel.send('Não autorizado!')
+
+                
                 season = user_input[-1]
                 
                 try:
@@ -350,7 +353,7 @@ class MyClient(discord.Client):
                 return await message.channel.send('', embed=embed)
 
             #################
-            # Registrar lider
+            # Listar lider
             #################
             if cmd in ('leaders', 'gyms', 'gym_leaders', 'gls', 'gl'):
                 leaders = BotCommands.get_leaders()
